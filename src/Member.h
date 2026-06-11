@@ -3,8 +3,6 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-using json = nlohmann::json;
-
 struct Member {
     int id;
     std::string name;
@@ -13,7 +11,7 @@ struct Member {
     std::string created_at;
 };
 
-inline void from_json(const json& j, Member& m) {
+inline void from_json(const nlohmann::json& j, Member& m) {
     m.id         = j["id"].get<int>();
     m.name       = j["name"].get<std::string>();
     m.email      = j["email"].get<std::string>();
@@ -21,7 +19,7 @@ inline void from_json(const json& j, Member& m) {
     m.created_at = j["created_at"].get<std::string>();
 }
 
-inline void to_json(json& j, const Member& m) {
+inline void to_json(nlohmann::json& j, const Member& m) {
     j["id"]         = m.id;
     j["name"]       = m.name;
     j["email"]      = m.email;

@@ -6,8 +6,6 @@
 #include <optional>
 #include <string>
 
-using json = nlohmann::json;
-
 class MemberRepository {
 public:
     explicit MemberRepository(const std::string& filePath);
@@ -20,7 +18,7 @@ public:
 
 private:
     std::string filePath_;
-    json data_;
+    nlohmann::json data_;
 
     void load();
     void save() const;

@@ -6,6 +6,8 @@
 #include <stdexcept>
 #include <iostream>
 
+using json = nlohmann::json;
+
 MemberRepository::MemberRepository(const std::string& filePath)
     : filePath_(filePath)
 {
