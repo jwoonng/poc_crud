@@ -23,6 +23,11 @@ void MemberRepository::load() {
     }
     try {
         data_ = json::parse(f);
+        // "members" 키가 없거나 배열이 아니면 초기화
+        if (!data_.contains("members") || !data_["members"].is_array()) {
+            std::cerr << "[MemberRepository] invalid structure: 'members' key missing or not an array\n";
+            data_ = json{{"members", json::array()}};
+        }
     } catch (const json::parse_error& e) {
         std::cerr << "[MemberRepository] JSON parse error: " << e.what() << "\n";
         data_ = json{{"members", json::array()}};
@@ -70,9 +75,22 @@ void MemberRepository::create(Member& m) {
     save();
 }
 
+static bool isValidMemberJson(const json& item) {
+    return item.is_object()
+        && item.contains("id")         && item["id"].is_number_integer()
+        && item.contains("name")       && item["name"].is_string()
+        && item.contains("email")      && item["email"].is_string()
+        && item.contains("phone")      && item["phone"].is_string()
+        && item.contains("created_at") && item["created_at"].is_string();
+}
+
 std::vector<Member> MemberRepository::findAll() const {
     std::vector<Member> result;
     for (const auto& item : data_["members"]) {
+        if (!isValidMemberJson(item)) {
+            std::cerr << "[MemberRepository] skipping invalid member record\n";
+            continue;
+        }
         result.push_back(item.get<Member>());
     }
     std::sort(result.begin(), result.end(), [](const Member& a, const Member& b){ return a.id < b.id; });
@@ -81,6 +99,7 @@ std::vector<Member> MemberRepository::findAll() const {
 
 std::optional<Member> MemberRepository::findById(int id) const {
     for (const auto& item : data_["members"]) {
+        if (!isValidMemberJson(item)) continue;
         if (item["id"].get<int>() == id) {
             return item.get<Member>();
         }
@@ -91,7 +110,7 @@ std::optional<Member> MemberRepository::findById(int id) const {
 bool MemberRepository::update(const Member& m) {
     auto& members = data_["members"];
     for (auto& item : members) {
-        if (item["id"].get<int>() == m.id) {
+        if (isValidMemberJson(item) && item["id"].get<int>() == m.id) {
             if (!m.name.empty())  item["name"]  = m.name;
             if (!m.email.empty()) item["email"] = m.email;
             if (!m.phone.empty()) item["phone"] = m.phone;
@@ -106,7 +125,7 @@ bool MemberRepository::remove(int id) {
     auto& members = data_["members"];
     auto it = std::find_if(members.begin(), members.end(),
         [id](const json& item) {
-            return item["id"].get<int>() == id;
+            return isValidMemberJson(item) && item["id"].get<int>() == id;
         });
     if (it == members.end()) {
         return false;

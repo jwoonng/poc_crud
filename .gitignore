@@ -17,3 +17,6 @@ nuget.exe
 
 # OS
 Thumbs.db
+
+# Regression tests
+tmp/
