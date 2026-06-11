@@ -181,6 +181,53 @@ ID 99에 해당하는 회원이 없습니다.
 
 ---
 
+## 테스트
+
+테스트 파일은 `tmp/` 디렉토리에 위치하며 git에서 제외됩니다.
+
+### 테스트 구성
+
+| 파일 | 종류 | 케이스 | Assertions |
+|-----|------|--------|-----------|
+| `tmp/test_crud.cpp` | Regression | 15 | 28 |
+| `tmp/test_safety.cpp` | Safety | 21 | 36 |
+
+### 전체 실행
+
+```powershell
+# 프로젝트 루트에서 실행
+.\tmp\run_tests.ps1
+```
+
+### 스위트별 실행
+
+```powershell
+# Regression 테스트만
+.\tmp\run_tests.ps1 -Suite regression
+
+# Safety 테스트만
+.\tmp\run_tests.ps1 -Suite safety
+```
+
+### 테스트 범위
+
+**Regression** — CRUD 기능 정상 동작 검증
+- Create: ID 자동 채번, created_at 자동 기록, 필수 필드 공백 거부
+- Read: 전체 목록 id 오름차순, 단건 조회, 없는 ID nullopt 반환
+- Update: 필드 수정, 빈 입력 시 기존값 유지
+- Delete: 삭제, 없는 ID false 반환
+- 데이터 영속성: 재실행 후 데이터 유지
+
+**Safety** — 비정상 입력 및 파일 I/O 방어 검증
+- 입력값 경계: 공백 전용 값, 10,000자 초과 필드
+- 특수문자/인젝션: JSON 특수문자, JSON 구조 인젝션 시도, null 바이트, 유니코드
+- 파일 I/O: 손상된 JSON, 빈 파일, `members` 키 누락, 불완전 레코드
+- 경계값/ID: 음수·0 ID, 1,000건 대량 삽입, 중복 데이터
+
+> **참고**: 테스트 실행 전 NuGet 패키지 복원이 완료되어 있어야 합니다.
+
+---
+
 ## 데이터 저장 위치
 
 모든 회원 데이터는 `data/members.json`에 저장됩니다.
